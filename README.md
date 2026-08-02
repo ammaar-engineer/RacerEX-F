@@ -1,6 +1,7 @@
 # RacerEX-F
 Small framework with expressjs library to make setup ExpressJS more fast
 ___
+___
 # Design penggunaan framework
 Framework nya akan di design khusus digunakan untuk mempercepat setup expressjs dan fleksibilitas saat development namun tidak kehilangan kemudahan nya. Saat proses design kita akan mengambil beberapa inspirasi design framework NestJS untuk melihat kira-kira apa saja sih yang dibutuhkan oleh backend development.
 
@@ -49,6 +50,46 @@ src/
 ├── connections/
 ├── utilities/
 └── entities/
+```
+
+## Dev story
+```typescript
+const UserController = new RacerEX_F.Route()
+.inject(userService, tokenValidation)
+.guards(isValidHuman)
+
+UserController.CreateEndpoint()
+.config({
+    type: 'REST',
+    method: 'post',
+    url: 'register'
+})
+.guards(
+    GetUserBodyDTO
+)
+.middleware(
+    loggerRegister
+)
+.main(async (rcf, injectedModule) => {
+    const token = await rcf.getRequest<GetUserBodyDTO>().email
+// Some business logic
+})
+
+UserController.CreateEndpoint()
+.config({
+    type: 'ws',
+    url: 'chat'
+})
+.guards( // walau guards nya ada tapi dia bakal diskip
+    GetUserBodyDTO
+)
+.middleware( // ini bakal tetep kena
+    loggerRegister
+)
+.main(async (rcf, injectedModule) => {
+    const token = await rcf.getRequest<GetUserBodyDTO>().email
+    // Some business logic
+})
 ```
 ___
 # Detail komponen saat ngeproject
