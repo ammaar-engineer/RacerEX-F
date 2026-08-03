@@ -29,27 +29,26 @@ npm install -D typescript tsx @types/express @types/node @types/cors
 ## 🎯 Quick Start
 
 ```typescript
-import RacerEX_F from './src/main.js'
+import RacerEX_F, { RacerEX_F as RacerClass } from './src/main.js'
 import express from 'express'
 
 // Buat controller
 const userController = RacerEX_F.Route()
 
-userController.CreateEndpoint({ type: 'http' })
-    .config({ type: 'http', method: 'get', url: '/hello' })
+userController.http()
+    .config({ method: 'get', url: '/hello' })
     .main((req, res) => {
         res.success('Hello from RacerEX-F!')
     })
 
-// Setup app
+// Setup app & bootstrap
 const app = RacerEX_F.App()
 
-app
-    .middleware(express.json())
-    .router('/api', userController.getRouter(), { type: 'http' })
-    .port(3000)
+app.middleware(express.json())
 
-console.log('Server running on http://localhost:3000')
+RacerClass.bootstrap(app, [
+    { path: '/api', route: userController }
+]).port(3000)
 ```
 
 Test:
@@ -71,22 +70,24 @@ curl http://localhost:3000/api/hello
 
 ```
 src/
-├── main.ts                        # Entry point & exports
+├── main.ts                        # Entry point, exports & bootstrap()
 ├── modules/
 │   ├── app/
 │   │   ├── main.ts               # AppModules (Express wrapper)
 │   │   └── middleware/
 │   │       └── error.middleware.ts
 │   └── routes/
-│       ├── main.ts               # Route class (DI & guards)
+│       ├── main.ts               # Route class — .http(), .ws(), .inject(), .guards()
 │       ├── controller/
-│       │   ├── http.ts           # HTTP endpoint builder
-│       │   └── ws.ts             # WebSocket endpoint builder
+│       │   ├── http.ts           # HttpEndpointBuilder
+│       │   └── ws.ts             # WsEndpointBuilder
 │       ├── services/
 │       │   ├── request.service.ts
 │       │   └── response.service.ts
+│       ├── types/
+│       │   └── endpoint.config.ts  # EndpointConfig types
 │       └── validations/
-│           └── superstruct.guard.ts  # Superstruct validation guards
+│           └── superstruct.guard.ts  # validateBody, validateParams, etc.
 ├── types/
 │   ├── response.output.ts        # Standard response format
 │   └── error.class.ts            # RacerError
@@ -103,17 +104,38 @@ src/
 ```typescript
 const userController = RacerEX_F.Route()
 
-userController.CreateEndpoint({ type: 'http' })
-  .config({ type: 'http', method: 'post', url: '/register' })
-  .guards(validateBody)           // Validation
-  .middleware(logger)             // Middleware
-  .main((req, res, injected) => { // Handler
+// HTTP endpoint
+userController.http()
+  .config({ method: 'post', url: '/register' })
+  .guards(validateBody(RegisterSchema))
+  .middleware(logger)
+  .main((req, res, injected) => {
     const body = req.getBody<RegisterDTO>()
     res.success(body, 'Registered', 201)
   })
+
+// WebSocket endpoint
+userController.ws()
+  .config({ url: '/chat' })
+  .main((socket, req) => {
+    socket.on('message', (msg) => { ... })
+  })
 ```
 
-### 2. Dependency Injection
+### 2. Bootstrap — Centralized Route Registration
+
+```typescript
+import RacerEX_F, { RacerEX_F as RacerClass } from './src/main.js'
+
+const app = RacerEX_F.App()
+
+RacerClass.bootstrap(app, [
+  { path: '/api/users', route: userController },
+  { path: '/api/admin', route: adminController }
+]).port(3000)
+```
+
+### 3. Dependency Injection
 
 ```typescript
 const userService = { /* ... */ }
@@ -122,13 +144,14 @@ const emailService = { /* ... */ }
 const route = RacerEX_F.Route()
   .inject(userService, emailService)
 
-route.CreateEndpoint({ type: 'http' })
+route.http()
+  .config({ method: 'post', url: '/user' })
   .main((req, res, [userSvc, emailSvc]) => {
     // Access injected services via array destructuring
   })
 ```
 
-### 3. Guards (Validation)
+### 4. Guards (Validation)
 
 **Superstruct validation:**
 ```typescript
@@ -139,7 +162,7 @@ const UserSchema = object({
   age: number()
 })
 
-route.CreateEndpoint({ type: 'http' })
+route.http()
   .guards(validateBody(UserSchema))
   .main(...)
 ```
@@ -163,7 +186,7 @@ const isAuthenticated = (req, res) => {
 route.guards(isAuthenticated)  // Apply to all endpoints
 ```
 
-### 4. Error Handling
+### 5. Error Handling
 
 ```typescript
 import { RacerError } from './src/main.js'
@@ -197,17 +220,21 @@ Framework ini di-design dengan inspirasi dari NestJS untuk:
 - **Type Safety** — Full TypeScript support
 - **Developer Experience** — Fluent API yang mudah dibaca & ditulis
 - **Modular** — Komponen bisa dipakai terpisah atau gabung
+- **Decoupled** — Route hanya data structure, bootstrap yang handle Express
 
 ---
 
 ## 🚧 Roadmap
 
 - [x] HTTP Endpoint Builder
+- [x] WebSocket Endpoint Builder (placeholder)
 - [x] Dependency Injection
 - [x] Guards System
 - [x] Superstruct Validation Guards
-- [x] Error Handling
+- [x] Error Handling (RacerError)
 - [x] Request/Response Services
+- [x] Config-based Route Architecture
+- [x] Centralized bootstrap()
 - [x] Complete Auth Example (login/register)
 - [ ] WebSocket Active (butuh `ws` library)
 - [ ] Decorators Support
