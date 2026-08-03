@@ -1,36 +1,48 @@
-const UserController = new RacerEX_F.Route()
-    .inject(userService, tokenValidation)
-    .guards(isValidHuman)
+import { Route } from './modules/routes/main.js'
+import { AppModules } from './modules/app/main.js'
 
-UserController.CreateEndpoint()
-    .config({
-        type: 'REST',
-        method: 'post',
-        url: 'register'
-    })
-    .guards(
-        GetUserBodyDTO
-    )
-    .middleware(
-        loggerRegister
-    )
-    .main(async (rcf, injectedModule) => {
-        const token = await rcf.getRequest<GetUserBodyDTO>().email
-        // Some business logic
-    })
+// Re-export types yang dibutuhkan user framework
+export type { HttpEndpointHandler, HttpEndpointConfig, GuardFn } from './modules/routes/controller/http.js'
+export type { WsEndpointHandler, WsEndpointConfig, WsConnection } from './modules/routes/controller/ws.js'
+export type { ResponseOutput } from './types/response.output.js'
 
-UserController.CreateEndpoint()
-    .config({
-        type: 'ws',
-        url: 'chat'
-    })
-    .guards( // walau guards nya ada tapi dia bakal diskip
-        GetUserBodyDTO
-    )
-    .middleware( // ini bakal tetep kena
-        loggerRegister
-    )
-    .main(async (rcf, injectedModule) => {
-        const token = await rcf.getRequest<GetUserBodyDTO>().email
-        // Some business logic
-    })
+// Re-export classes
+export { RacerError } from './types/error.class.js'
+export { RequestService } from './modules/routes/services/request.service.js'
+export { ResponseService } from './modules/routes/services/response.service.js'
+
+/**
+ * RacerEX_F - Main framework class
+ *
+ * @example
+ * import RacerEX_F from './main.js'
+ *
+ * const app = RacerEX_F.App()
+ * const userController = RacerEX_F.Route()
+ *
+ * userController.CreateEndpoint({ type: 'http' })
+ *   .config({ type: 'http', method: 'get', url: '/hello' })
+ *   .main((req, res) => {
+ *     res.success('Hello World')
+ *   })
+ *
+ * app.router('/api', userController.getRouter(), { type: 'http' })
+ * app.port(3000)
+ */
+export class RacerEX_F {
+    /**
+     * Create new Route instance
+     */
+    Route() {
+        return new Route()
+    }
+
+    /**
+     * Create new App instance
+     */
+    App() {
+        return new AppModules()
+    }
+}
+
+export default new RacerEX_F()
