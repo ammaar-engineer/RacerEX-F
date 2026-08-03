@@ -1,5 +1,5 @@
 import express from 'express'
-import RacerEX_F, { RacerEX_F as RacerClass } from '../main.js'
+import { RacerEX_F } from '../main.js'
 
 // === Example 1: Simple endpoint ===
 const userController = RacerEX_F.Route()
@@ -68,7 +68,7 @@ app
     .middleware(express.json())
     .middleware(express.urlencoded({ extended: true }))
 
-RacerClass.bootstrap(app, [
+RacerEX_F.bootstrap(app, [
     { path: '/api', route: userController },
     { path: '/api', route: adminController },
     { path: '/ws', route: chatController }

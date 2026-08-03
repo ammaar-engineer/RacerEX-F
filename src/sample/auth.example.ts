@@ -1,5 +1,5 @@
-import RacerEX_F, {
-    RacerEX_F as RacerClass,
+import {
+    RacerEX_F,
     RacerError,
     validateBody,
     object,
@@ -191,7 +191,7 @@ const app = RacerEX_F.App()
 
 app.middleware(express.json())
 
-RacerClass.bootstrap(app, [
+RacerEX_F.bootstrap(app, [
     { path: '/auth', route: authController }
 ])
 

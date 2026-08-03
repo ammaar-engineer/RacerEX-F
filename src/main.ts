@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import { AppModules } from './modules/app/main.js'
+import { registerHttpEndpoint, registerWsEndpoint } from './modules/app/express.handler.js'
 import { Route } from './modules/routes/main.js'
-import { registerHttpEndpoint, registerWsEndpoint } from './services/express.handler.js'
 
 // Re-export types yang dibutuhkan user framework
 export type { GuardFn, HttpEndpointHandler } from './modules/routes/endpoints/http.js'

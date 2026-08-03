@@ -1,8 +1,8 @@
 import { Router } from 'express'
-import { RequestService } from '../modules/routes/services/request.service.js'
-import { ResponseService } from '../modules/routes/services/response.service.js'
-import { RacerError } from '../types/error.class.js'
-import type { HttpEndpointConfig } from '../modules/routes/types/endpoint.config.js'
+import { RequestService } from '../routes/services/request.service.js'
+import { ResponseService } from '../routes/services/response.service.js'
+import { RacerError } from '../../types/error.class.js'
+import type { HttpEndpointConfig } from '../routes/types/endpoint.config.js'
 
 /**
  * Register HTTP endpoint ke Express Router

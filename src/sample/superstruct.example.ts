@@ -1,4 +1,4 @@
-import RacerEX_F, { RacerEX_F as RacerClass, validateBody, validateParams, object, string, number, optional, pattern } from '../main.js'
+import { RacerEX_F, validateBody, validateParams, object, string, number, optional, pattern } from '../main.js'
 import express from 'express'
 
 // === Define Schemas ===
@@ -77,7 +77,7 @@ const app = RacerEX_F.App()
 
 app.middleware(express.json())
 
-RacerClass.bootstrap(app, [
+RacerEX_F.bootstrap(app, [
     { path: '/api', route: userController }
 ])
 
