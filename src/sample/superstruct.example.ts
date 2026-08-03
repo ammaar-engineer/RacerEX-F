@@ -1,4 +1,4 @@
-import RacerEX_F, { validateBody, validateParams, object, string, number, optional, pattern } from '../main.js'
+import RacerEX_F, { RacerEX_F as RacerClass, validateBody, validateParams, object, string, number, optional, pattern } from '../main.js'
 import express from 'express'
 
 // === Define Schemas ===
@@ -39,7 +39,6 @@ const userService = {
 // === Routes ===
 const userController = RacerEX_F.Route().inject(userService)
 
-// Register user (with body validation)
 userController.CreateEndpoint({ type: 'http' })
     .config({ type: 'http', method: 'post', url: '/register' })
     .guards(validateBody(RegisterSchema))
@@ -49,22 +48,16 @@ userController.CreateEndpoint({ type: 'http' })
         res.success(user, 'User registered successfully', 201)
     })
 
-// Get user by ID (with params validation)
 userController.CreateEndpoint({ type: 'http' })
     .config({ type: 'http', method: 'get', url: '/user/:id' })
     .guards(validateParams(UserIdSchema))
     .main((req, res, [service]) => {
         const id = req.getParam('id')
         const user = service.findById(id)
-
-        if (!user) {
-            return res.error('USER_NOT_FOUND', 'User not found', 404)
-        }
-
+        if (!user) return res.error('USER_NOT_FOUND', 'User not found', 404)
         res.success(user)
     })
 
-// Update user (with params + body validation)
 userController.CreateEndpoint({ type: 'http' })
     .config({ type: 'http', method: 'patch', url: '/user/:id' })
     .guards(
@@ -75,36 +68,21 @@ userController.CreateEndpoint({ type: 'http' })
         const id = req.getParam('id')
         const body = req.getBody()
         const user = service.update(id, body)
-
-        if (!user) {
-            return res.error('USER_NOT_FOUND', 'User not found', 404)
-        }
-
+        if (!user) return res.error('USER_NOT_FOUND', 'User not found', 404)
         res.success(user, 'User updated')
     })
 
 // === Setup App ===
 const app = RacerEX_F.App()
 
-app
-    .middleware(express.json())
-    .router('/api', userController.getRouter(), { type: 'http' })
-    .port(3000)
+app.middleware(express.json())
+
+RacerClass.bootstrap(app, [
+    { path: '/api', route: userController }
+]).port(3000)
 
 console.log('\n✅ Server started with Superstruct validation')
 console.log('\nTest commands:')
-console.log('  # Valid request')
 console.log('  curl -X POST http://localhost:3000/api/register \\')
 console.log('    -H "Content-Type: application/json" \\')
 console.log('    -d \'{"email":"user@example.com","password":"secret","name":"John","age":25}\'')
-console.log('')
-console.log('  # Invalid email (validation error)')
-console.log('  curl -X POST http://localhost:3000/api/register \\')
-console.log('    -H "Content-Type: application/json" \\')
-console.log('    -d \'{"email":"invalid","password":"secret","name":"John","age":25}\'')
-console.log('')
-console.log('  # Missing required field (validation error)')
-console.log('  curl -X POST http://localhost:3000/api/register \\')
-console.log('    -H "Content-Type: application/json" \\')
-console.log('    -d \'{"email":"user@example.com","password":"secret"}\'')
-console.log('\n')

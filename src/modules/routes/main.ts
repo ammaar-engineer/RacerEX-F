@@ -1,12 +1,13 @@
-import express, { Router } from 'express'
 import { HttpEndpointBuilder, type GuardFn } from './controller/http.js'
 import { WsEndpointBuilder } from './controller/ws.js'
+import type { EndpointConfig } from './types/endpoint.config.js'
 
 /**
  * Route - Container untuk multiple endpoints dengan DI dan guards support
+ * Tidak memiliki Express Router — hanya menyimpan endpoint configs
  */
 export class Route {
-    private router: Router = express.Router()
+    private endpoints: EndpointConfig[] = []
     private injectedDependencies: any[] = []
     private globalGuards: GuardFn[] = []
 
@@ -57,23 +58,30 @@ export class Route {
     CreateEndpoint({ type }: { type: 'http' | 'ws' }): HttpEndpointBuilder | WsEndpointBuilder {
         if (type === 'ws') {
             return new WsEndpointBuilder(
-                this.router,
+                this,
                 this.injectedDependencies,
                 this.globalGuards
             )
         }
 
         return new HttpEndpointBuilder(
-            this.router,
+            this,
             this.injectedDependencies,
             this.globalGuards
         )
     }
 
     /**
-     * Get Express Router instance untuk integration dengan AppModules
+     * Internal: Add endpoint config (called by builders)
      */
-    getRouter(): Router {
-        return this.router
+    addEndpoint(config: EndpointConfig): void {
+        this.endpoints.push(config)
+    }
+
+    /**
+     * Get all endpoint configs (used by bootstrap)
+     */
+    getConfigs(): EndpointConfig[] {
+        return this.endpoints
     }
 }

@@ -34,7 +34,6 @@ export {
     enums,
     pattern,
     size,
-    email,
     define,
     type Infer
 } from 'superstruct'

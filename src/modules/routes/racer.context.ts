@@ -49,7 +49,7 @@ export class RacerContext<T = any> {
     /**
      * Alias untuk request.getParam()
      */
-    getParam(key: string): string {
+    getParam(key: string): string | undefined {
         return this.request.getParam(key)
     }
 

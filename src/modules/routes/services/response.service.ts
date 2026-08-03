@@ -26,13 +26,16 @@ export class ResponseService {
      * Send success response dengan shorthand
      */
     success<D = any>(data: D, message?: string, statusCode: number = 200): void {
-        this.json({
+        const response: ResponseOutput<D> = {
             success: true,
             statusCode,
             errorCode: '',
-            message,
             data
-        })
+        }
+        if (message !== undefined) {
+            response.message = message
+        }
+        this.json(response)
     }
 
     /**

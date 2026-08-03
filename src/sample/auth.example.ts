@@ -1,4 +1,5 @@
 import RacerEX_F, {
+    RacerEX_F as RacerClass,
     RacerError,
     validateBody,
     object,
@@ -13,7 +14,6 @@ import crypto from 'crypto'
 // === Schemas ===
 const PasswordSchema = define<string>('Password', (value) => {
     if (typeof value !== 'string') return false
-    // Min 8 chars, at least 1 uppercase, 1 lowercase, 1 number
     return value.length >= 8 &&
            /[A-Z]/.test(value) &&
            /[a-z]/.test(value) &&
@@ -46,29 +46,21 @@ interface Session {
     expiresAt: Date
 }
 
-// === Helper Functions ===
-function hashPassword(password: string): string {
-    return crypto.createHash('sha256').update(password).digest('hex')
-}
+// === Helpers ===
+const hashPassword = (p: string) => crypto.createHash('sha256').update(p).digest('hex')
+const generateToken = () => crypto.randomBytes(32).toString('hex')
 
-function generateToken(): string {
-    return crypto.randomBytes(32).toString('hex')
-}
-
-// === In-Memory Database (untuk demo) ===
+// === In-Memory Database ===
 const db = {
     users: [] as User[],
     sessions: [] as Session[],
 
-    // User methods
-    findUserByEmail(email: string): User | undefined {
+    findUserByEmail(email: string) {
         return this.users.find(u => u.email.toLowerCase() === email.toLowerCase())
     },
-
-    findUserById(id: string): User | undefined {
+    findUserById(id: string) {
         return this.users.find(u => u.id === id)
     },
-
     createUser(email: string, password: string, name: string): User {
         const user: User = {
             id: Date.now().toString(),
@@ -80,36 +72,28 @@ const db = {
         this.users.push(user)
         return user
     },
-
-    // Session methods
     createSession(userId: string): Session {
         const session: Session = {
             token: generateToken(),
             userId,
-            expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
+            expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000)
         }
         this.sessions.push(session)
         return session
     },
-
-    findSessionByToken(token: string): Session | undefined {
+    findSessionByToken(token: string) {
         return this.sessions.find(s => s.token === token && s.expiresAt > new Date())
     },
-
-    deleteSession(token: string): boolean {
+    deleteSession(token: string) {
         const index = this.sessions.findIndex(s => s.token === token)
-        if (index !== -1) {
-            this.sessions.splice(index, 1)
-            return true
-        }
-        return false
+        if (index !== -1) this.sessions.splice(index, 1)
+        return index !== -1
     }
 }
 
 // === Guards ===
-const isAuthenticated = (req, res) => {
+const isAuthenticated = (req: any) => {
     const authHeader = req.getHeader('Authorization')
-
     if (!authHeader) {
         throw new RacerError({
             statusCode: 401,
@@ -120,7 +104,6 @@ const isAuthenticated = (req, res) => {
 
     const token = authHeader.replace('Bearer ', '')
     const session = db.findSessionByToken(token)
-
     if (!session) {
         throw new RacerError({
             statusCode: 401,
@@ -129,67 +112,44 @@ const isAuthenticated = (req, res) => {
         })
     }
 
-    // Store user info in request for handler to use
-    // (This is a workaround since we can't modify req object directly)
     return true
 }
 
 // === Routes ===
 const authController = RacerEX_F.Route().inject(db)
 
-// Register endpoint
 authController.CreateEndpoint({ type: 'http' })
     .config({ type: 'http', method: 'post', url: '/register' })
     .guards(validateBody(RegisterSchema))
     .main((req, res, [db]) => {
-        const { email, password, name } = req.getBody<{
-            email: string
-            password: string
-            name: string
-        }>()
+        const { email, password, name } = req.getBody<{ email: string; password: string; name: string }>()
 
-        // Check if user already exists
-        const existingUser = db.findUserByEmail(email)
-        if (existingUser) {
+        if (db.findUserByEmail(email)) {
             throw new RacerError({
                 statusCode: 409,
                 errorCode: 'USER_EXISTS',
-                message: 'User with this email already exists',
-                data: { email }
+                message: 'User with this email already exists'
             })
         }
 
-        // Create user
         const user = db.createUser(email, password, name)
-
-        // Create session
         const session = db.createSession(user.id)
 
         res.success({
-            user: {
-                id: user.id,
-                email: user.email,
-                name: user.name,
-                createdAt: user.createdAt
-            },
+            user: { id: user.id, email: user.email, name: user.name, createdAt: user.createdAt },
             token: session.token,
             expiresAt: session.expiresAt
         }, 'Registration successful', 201)
     })
 
-// Login endpoint
 authController.CreateEndpoint({ type: 'http' })
     .config({ type: 'http', method: 'post', url: '/login' })
     .guards(validateBody(LoginSchema))
     .main((req, res, [db]) => {
-        const { email, password } = req.getBody<{
-            email: string
-            password: string
-        }>()
+        const { email, password } = req.getBody<{ email: string; password: string }>()
 
-        // Find user
         const user = db.findUserByEmail(email)
-        if (!user) {
+        if (!user || user.passwordHash !== hashPassword(password)) {
             throw new RacerError({
                 statusCode: 401,
                 errorCode: 'INVALID_CREDENTIALS',
@@ -197,88 +157,47 @@ authController.CreateEndpoint({ type: 'http' })
             })
         }
 
-        // Verify password
-        const passwordHash = hashPassword(password)
-        if (user.passwordHash !== passwordHash) {
-            throw new RacerError({
-                statusCode: 401,
-                errorCode: 'INVALID_CREDENTIALS',
-                message: 'Invalid email or password'
-            })
-        }
-
-        // Create session
         const session = db.createSession(user.id)
 
         res.success({
-            user: {
-                id: user.id,
-                email: user.email,
-                name: user.name
-            },
+            user: { id: user.id, email: user.email, name: user.name },
             token: session.token,
             expiresAt: session.expiresAt
         }, 'Login successful')
     })
 
-// Get current user (protected)
 authController.CreateEndpoint({ type: 'http' })
     .config({ type: 'http', method: 'get', url: '/me' })
     .guards(isAuthenticated)
     .main((req, res, [db]) => {
-        const authHeader = req.getHeader('Authorization')!
-        const token = authHeader.replace('Bearer ', '')
+        const token = req.getHeader('Authorization')!.replace('Bearer ', '')
         const session = db.findSessionByToken(token)!
         const user = db.findUserById(session.userId)!
 
-        res.success({
-            id: user.id,
-            email: user.email,
-            name: user.name,
-            createdAt: user.createdAt
-        })
+        res.success({ id: user.id, email: user.email, name: user.name, createdAt: user.createdAt })
     })
 
-// Logout endpoint (protected)
 authController.CreateEndpoint({ type: 'http' })
     .config({ type: 'http', method: 'post', url: '/logout' })
     .guards(isAuthenticated)
     .main((req, res, [db]) => {
-        const authHeader = req.getHeader('Authorization')!
-        const token = authHeader.replace('Bearer ', '')
-
+        const token = req.getHeader('Authorization')!.replace('Bearer ', '')
         db.deleteSession(token)
-
         res.success(null, 'Logout successful')
     })
 
 // === Setup App ===
 const app = RacerEX_F.App()
 
-app
-    .middleware(express.json())
-    .router('/auth', authController.getRouter(), { type: 'http' })
-    .port(3000)
+app.middleware(express.json())
+
+RacerClass.bootstrap(app, [
+    { path: '/auth', route: authController }
+]).port(3000)
 
 console.log('\n✅ Auth server started on http://localhost:3000')
 console.log('\nEndpoints:')
-console.log('  POST /auth/register  - Register new user')
-console.log('  POST /auth/login     - Login user')
-console.log('  GET  /auth/me        - Get current user (protected)')
-console.log('  POST /auth/logout    - Logout (protected)')
-console.log('\n📝 Test commands:')
-console.log('\n1. Register:')
-console.log('curl -X POST http://localhost:3000/auth/register \\')
-console.log('  -H "Content-Type: application/json" \\')
-console.log('  -d \'{"email":"user@example.com","password":"Secret123","name":"John Doe"}\'')
-console.log('\n2. Login:')
-console.log('curl -X POST http://localhost:3000/auth/login \\')
-console.log('  -H "Content-Type: application/json" \\')
-console.log('  -d \'{"email":"user@example.com","password":"Secret123"}\'')
-console.log('\n3. Get current user (use token from login):')
-console.log('curl http://localhost:3000/auth/me \\')
-console.log('  -H "Authorization: Bearer <token>"')
-console.log('\n4. Logout:')
-console.log('curl -X POST http://localhost:3000/auth/logout \\')
-console.log('  -H "Authorization: Bearer <token>"')
-console.log('\n')
+console.log('  POST /auth/register')
+console.log('  POST /auth/login')
+console.log('  GET  /auth/me        (protected)')
+console.log('  POST /auth/logout    (protected)\n')

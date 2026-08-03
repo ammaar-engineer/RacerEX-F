@@ -1,15 +1,7 @@
-import type { Router, RequestHandler } from 'express'
-import { RequestService } from '../services/request.service.js'
-import { ResponseService } from '../services/response.service.js'
-import { RacerError } from '../../../types/error.class.js'
-
-type HttpMethod = 'get' | 'post' | 'put' | 'patch' | 'delete'
-
-export type HttpEndpointConfig = {
-    type: 'http'
-    method: HttpMethod
-    url: string
-}
+import type { RequestHandler } from 'express'
+import type { RequestService } from '../services/request.service.js'
+import type { ResponseService } from '../services/response.service.js'
+import type { HttpEndpointConfig } from '../types/endpoint.config.js'
 
 export type GuardFn = (
     req: RequestService,
@@ -25,31 +17,45 @@ export type HttpEndpointHandler = (
     injected: any[]
 ) => void | Promise<void>
 
+type HttpMethod = 'get' | 'post' | 'put' | 'patch' | 'delete'
+
+type HttpConfigInput = {
+    type: 'http'
+    method: HttpMethod
+    url: string
+}
+
+// Interface minimal untuk menghindari circular import
+interface RouteReceiver {
+    addEndpoint(config: HttpEndpointConfig): void
+}
+
 /**
  * HttpEndpointBuilder - Builder pattern untuk konfigurasi HTTP endpoint
+ * Tidak ada Express dependency — hanya kumpulkan config lalu inject ke Route
  *
  * @example
  * route.CreateEndpoint({ type: 'http' })
  *   .config({ type: 'http', method: 'post', url: '/register' })
- *   .guards(validateBody)
+ *   .guards(validateBody(Schema))
  *   .middleware(logger)
  *   .main(async (req, res, [userService]) => {
- *     const body = req.getBody<RegisterDTO>()
+ *     const body = req.getBody()
  *     res.success(body, 'Created', 201)
  *   })
  */
 export class HttpEndpointBuilder {
-    private cfg: HttpEndpointConfig | null = null
+    private cfg: HttpConfigInput | null = null
     private endpointGuards: GuardFn[] = []
     private endpointMiddlewares: RequestHandler[] = []
 
     constructor(
-        private router: Router,
+        private route: RouteReceiver,
         private injected: any[],
         private controllerGuards: GuardFn[]
     ) {}
 
-    config(cfg: HttpEndpointConfig): this {
+    config(cfg: HttpConfigInput): this {
         this.cfg = cfg
         return this
     }
@@ -64,40 +70,24 @@ export class HttpEndpointBuilder {
         return this
     }
 
+    /**
+     * Terminal method — inject config ke Route object
+     */
     main(handler: HttpEndpointHandler): void {
         if (!this.cfg) {
             throw new Error('HttpEndpointBuilder: .config() harus dipanggil sebelum .main()')
         }
 
-        const { method, url } = this.cfg
-        const allGuards = [...this.controllerGuards, ...this.endpointGuards]
-        const injected = this.injected
-
-        const expressHandler = async (req: any, res: any, next: any) => {
-            try {
-                const request = new RequestService(req)
-                const response = new ResponseService(res)
-
-                for (const guard of allGuards) {
-                    const result = await guard(request, response)
-                    if (result === false || (typeof result === 'object' && !result.success)) {
-                        const msg = typeof result === 'object' ? result.message : undefined
-                        const data = typeof result === 'object' ? result.data : undefined
-                        throw new RacerError({
-                            statusCode: 400,
-                            errorCode: 'GUARD_FAILED',
-                            message: msg ?? 'Validation failed',
-                            data
-                        })
-                    }
-                }
-
-                await handler(request, response, injected)
-            } catch (error) {
-                next(error)
-            }
+        const config: HttpEndpointConfig = {
+            type: 'http',
+            method: this.cfg.method,
+            url: this.cfg.url,
+            guards: [...this.controllerGuards, ...this.endpointGuards],
+            middlewares: this.endpointMiddlewares,
+            injected: this.injected,
+            handler
         }
 
-        this.router[method](url, ...this.endpointMiddlewares, expressHandler)
+        this.route.addEndpoint(config)
     }
 }

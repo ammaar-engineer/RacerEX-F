@@ -1,4 +1,4 @@
-import RacerEX_F from '../main.js'
+import RacerEX_F, { RacerEX_F as RacerClass } from '../main.js'
 import express from 'express'
 
 // === Example 1: Simple endpoint ===
@@ -57,8 +57,6 @@ chatController.CreateEndpoint({ type: 'ws' })
     .config({ type: 'ws', url: '/chat' })
     .main((socket, req) => {
         console.log('WS connected (placeholder)')
-        // socket.on('message', (msg) => { ... })
-        // socket.send('Hello from server')
     })
 
 // === Setup app ===
@@ -67,10 +65,12 @@ const app = RacerEX_F.App()
 app
     .middleware(express.json())
     .middleware(express.urlencoded({ extended: true }))
-    .router('/api', userController.getRouter(), { type: 'http' })
-    .router('/api', adminController.getRouter(), { type: 'http' })
-    .router('/ws', chatController.getRouter(), { type: 'ws' })
-    .port(3000)
+
+RacerClass.bootstrap(app, [
+    { path: '/api', route: userController },
+    { path: '/api', route: adminController },
+    { path: '/ws', route: chatController }
+]).port(3000)
 
 console.log('\n✅ Server started on http://localhost:3000')
 console.log('\nHTTP Endpoints:')
