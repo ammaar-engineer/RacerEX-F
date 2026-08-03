@@ -72,7 +72,9 @@ RacerClass.bootstrap(app, [
     { path: '/api', route: userController },
     { path: '/api', route: adminController },
     { path: '/ws', route: chatController }
-]).port(3000)
+])
+
+app.port(3000)
 
 console.log('\n✅ Server started on http://localhost:3000')
 console.log('\nHTTP Endpoints:')

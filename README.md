@@ -48,7 +48,9 @@ app.middleware(express.json())
 
 RacerClass.bootstrap(app, [
     { path: '/api', route: userController }
-]).port(3000)
+])
+
+app.port(3000)
 ```
 
 Test:
@@ -132,7 +134,9 @@ const app = RacerEX_F.App()
 RacerClass.bootstrap(app, [
   { path: '/api/users', route: userController },
   { path: '/api/admin', route: adminController }
-]).port(3000)
+])
+
+app.port(3000)
 ```
 
 ### 3. Dependency Injection

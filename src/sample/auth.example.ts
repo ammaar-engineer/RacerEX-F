@@ -193,7 +193,9 @@ app.middleware(express.json())
 
 RacerClass.bootstrap(app, [
     { path: '/auth', route: authController }
-]).port(3000)
+])
+
+app.port(3000)
 
 console.log('\n✅ Auth server started on http://localhost:3000')
 console.log('\nEndpoints:')

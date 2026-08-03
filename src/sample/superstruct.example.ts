@@ -79,7 +79,9 @@ app.middleware(express.json())
 
 RacerClass.bootstrap(app, [
     { path: '/api', route: userController }
-]).port(3000)
+])
+
+app.port(3000)
 
 console.log('\n✅ Server started with Superstruct validation')
 console.log('\nTest commands:')
