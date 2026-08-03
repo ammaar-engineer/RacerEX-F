@@ -222,10 +222,4 @@ MIT
 
 ---
 
-## 🤝 Contributing
-
-Contributions are welcome! Lihat issue atau buat pull request.
-
----
-
-**Built with ❤️ by the RacerEX-F Team**
+**Built with ❤️ by Ammaar-Engineer**
