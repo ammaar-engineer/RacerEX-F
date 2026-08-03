@@ -118,8 +118,8 @@ const isAuthenticated = (req: any) => {
 // === Routes ===
 const authController = RacerEX_F.Route().inject(db)
 
-authController.CreateEndpoint({ type: 'http' })
-    .config({ type: 'http', method: 'post', url: '/register' })
+authController.http()
+    .config({ method: 'post', url: '/register' })
     .guards(validateBody(RegisterSchema))
     .main((req, res, [db]) => {
         const { email, password, name } = req.getBody<{ email: string; password: string; name: string }>()
@@ -142,8 +142,8 @@ authController.CreateEndpoint({ type: 'http' })
         }, 'Registration successful', 201)
     })
 
-authController.CreateEndpoint({ type: 'http' })
-    .config({ type: 'http', method: 'post', url: '/login' })
+authController.http()
+    .config({ method: 'post', url: '/login' })
     .guards(validateBody(LoginSchema))
     .main((req, res, [db]) => {
         const { email, password } = req.getBody<{ email: string; password: string }>()
@@ -166,8 +166,8 @@ authController.CreateEndpoint({ type: 'http' })
         }, 'Login successful')
     })
 
-authController.CreateEndpoint({ type: 'http' })
-    .config({ type: 'http', method: 'get', url: '/me' })
+authController.http()
+    .config({ method: 'get', url: '/me' })
     .guards(isAuthenticated)
     .main((req, res, [db]) => {
         const token = req.getHeader('Authorization')!.replace('Bearer ', '')
@@ -177,8 +177,8 @@ authController.CreateEndpoint({ type: 'http' })
         res.success({ id: user.id, email: user.email, name: user.name, createdAt: user.createdAt })
     })
 
-authController.CreateEndpoint({ type: 'http' })
-    .config({ type: 'http', method: 'post', url: '/logout' })
+authController.http()
+    .config({ method: 'post', url: '/logout' })
     .guards(isAuthenticated)
     .main((req, res, [db]) => {
         const token = req.getHeader('Authorization')!.replace('Bearer ', '')

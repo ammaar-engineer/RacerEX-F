@@ -34,37 +34,28 @@ export class Route {
 
     /**
      * Create new HTTP endpoint builder
+     * @example
+     * route.http()
+     *   .config({ method: 'get', url: '/hello' })
+     *   .main((req, res) => { ... })
      */
-    CreateEndpoint(options: { type: 'http' }): HttpEndpointBuilder
+    http(): HttpEndpointBuilder {
+        return new HttpEndpointBuilder(
+            this,
+            this.injectedDependencies,
+            this.globalGuards
+        )
+    }
 
     /**
      * Create new WebSocket endpoint builder
-     */
-    CreateEndpoint(options: { type: 'ws' }): WsEndpointBuilder
-
-    /**
-     * Create new endpoint builder based on type
      * @example
-     * // HTTP endpoint
-     * route.CreateEndpoint({ type: 'http' })
-     *   .config({ type: 'http', method: 'get', url: '/hello' })
-     *   .main((req, res) => { ... })
-     *
-     * // WebSocket endpoint
-     * route.CreateEndpoint({ type: 'ws' })
-     *   .config({ type: 'ws', url: '/chat' })
+     * route.ws()
+     *   .config({ url: '/chat' })
      *   .main((socket, req) => { ... })
      */
-    CreateEndpoint({ type }: { type: 'http' | 'ws' }): HttpEndpointBuilder | WsEndpointBuilder {
-        if (type === 'ws') {
-            return new WsEndpointBuilder(
-                this,
-                this.injectedDependencies,
-                this.globalGuards
-            )
-        }
-
-        return new HttpEndpointBuilder(
+    ws(): WsEndpointBuilder {
+        return new WsEndpointBuilder(
             this,
             this.injectedDependencies,
             this.globalGuards

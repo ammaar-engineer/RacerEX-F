@@ -20,7 +20,6 @@ export type HttpEndpointHandler = (
 type HttpMethod = 'get' | 'post' | 'put' | 'patch' | 'delete'
 
 type HttpConfigInput = {
-    type: 'http'
     method: HttpMethod
     url: string
 }

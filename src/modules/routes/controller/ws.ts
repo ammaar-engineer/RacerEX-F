@@ -16,7 +16,6 @@ export type WsEndpointHandler = (
 ) => void | Promise<void>
 
 export type WsEndpointInputConfig = {
-    type: 'ws'
     url: string
 }
 

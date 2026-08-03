@@ -39,8 +39,8 @@ const userService = {
 // === Routes ===
 const userController = RacerEX_F.Route().inject(userService)
 
-userController.CreateEndpoint({ type: 'http' })
-    .config({ type: 'http', method: 'post', url: '/register' })
+userController.http()
+    .config({ method: 'post', url: '/register' })
     .guards(validateBody(RegisterSchema))
     .main((req, res, [service]) => {
         const body = req.getBody()
@@ -48,8 +48,8 @@ userController.CreateEndpoint({ type: 'http' })
         res.success(user, 'User registered successfully', 201)
     })
 
-userController.CreateEndpoint({ type: 'http' })
-    .config({ type: 'http', method: 'get', url: '/user/:id' })
+userController.http()
+    .config({ method: 'get', url: '/user/:id' })
     .guards(validateParams(UserIdSchema))
     .main((req, res, [service]) => {
         const id = req.getParam('id')
@@ -58,8 +58,8 @@ userController.CreateEndpoint({ type: 'http' })
         res.success(user)
     })
 
-userController.CreateEndpoint({ type: 'http' })
-    .config({ type: 'http', method: 'patch', url: '/user/:id' })
+userController.http()
+    .config({ method: 'patch', url: '/user/:id' })
     .guards(
         validateParams(UserIdSchema),
         validateBody(UpdateUserSchema)
