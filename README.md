@@ -9,6 +9,7 @@ Express.js framework dengan fluent API pattern untuk mempercepat setup dan devel
 - ✅ **Fluent API** — Chaining pattern seperti NestJS untuk define endpoint
 - ✅ **Dependency Injection** — Inject services ke controller dengan mudah
 - ✅ **Guards System** — Validation pipeline di level controller & endpoint
+- ✅ **Superstruct Integration** — Schema validation dengan error messages yang jelas
 - ✅ **Request/Response Wrapper** — Type-safe API untuk akses request & response
 - ✅ **Error Handling** — Standard error format dengan custom error support
 - ✅ **HTTP & WebSocket** — Dual protocol support (WS ready, butuh install library)
@@ -19,7 +20,7 @@ Express.js framework dengan fluent API pattern untuk mempercepat setup dan devel
 ## 📦 Installation
 
 ```bash
-npm install express cors dotenv
+npm install express cors dotenv superstruct
 npm install -D typescript tsx @types/express @types/node @types/cors
 ```
 
@@ -60,14 +61,9 @@ curl http://localhost:3000/api/hello
 
 ## 📖 Documentation
 
-Lihat [USAGE.md](./USAGE.md) untuk dokumentasi lengkap dengan contoh:
-- Request & Response API
-- Guards (validation)
-- Dependency Injection
-- Middleware
-- Error Handling
-- TypeScript Types
-- Complete Examples
+**Dokumentasi lengkap:**
+- [USAGE.md](./USAGE.md) — API reference, examples, patterns
+- [GUARDS.md](./GUARDS.md) — Guards system, error handling, custom guards
 
 ---
 
@@ -86,9 +82,11 @@ src/
 │       ├── controller/
 │       │   ├── http.ts           # HTTP endpoint builder
 │       │   └── ws.ts             # WebSocket endpoint builder
-│       └── services/
-│           ├── request.service.ts
-│           └── response.service.ts
+│       ├── services/
+│       │   ├── request.service.ts
+│       │   └── response.service.ts
+│       └── validations/
+│           └── superstruct.guard.ts  # Superstruct validation guards
 ├── types/
 │   ├── response.output.ts        # Standard response format
 │   └── error.class.ts            # RacerError
@@ -132,19 +130,37 @@ route.CreateEndpoint({ type: 'http' })
 
 ### 3. Guards (Validation)
 
+**Superstruct validation:**
 ```typescript
+import { validateBody, object, string, number } from './src/main.js'
+
+const UserSchema = object({
+  email: string(),
+  age: number()
+})
+
+route.CreateEndpoint({ type: 'http' })
+  .guards(validateBody(UserSchema))
+  .main(...)
+```
+
+**Custom guards:**
+```typescript
+import { RacerError } from './src/main.js'
+
 const isAuthenticated = (req, res) => {
   const token = req.getHeader('Authorization')
-  return token ? true : { success: false, message: 'Unauthorized' }
+  if (!token) {
+    throw new RacerError({
+      statusCode: 401,
+      errorCode: 'UNAUTHORIZED',
+      message: 'Missing token'
+    })
+  }
+  return true
 }
 
-// Global guards untuk semua endpoint
-const route = RacerEX_F.Route().guards(isAuthenticated)
-
-// Endpoint-specific guards
-route.CreateEndpoint({ type: 'http' })
-  .guards(validateId)  // Stacked after global guards
-  .main(...)
+route.guards(isAuthenticated)  // Apply to all endpoints
 ```
 
 ### 4. Error Handling
@@ -189,10 +205,11 @@ Framework ini di-design dengan inspirasi dari NestJS untuk:
 - [x] HTTP Endpoint Builder
 - [x] Dependency Injection
 - [x] Guards System
+- [x] Superstruct Validation Guards
 - [x] Error Handling
 - [x] Request/Response Services
+- [x] Complete Auth Example (login/register)
 - [ ] WebSocket Active (butuh `ws` library)
-- [ ] Guards Utilities (common validators)
 - [ ] Decorators Support
 - [ ] Testing Utilities
 - [ ] CLI Generator

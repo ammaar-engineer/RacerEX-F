@@ -11,6 +11,10 @@ export { RacerError } from './types/error.class.js'
 export { RequestService } from './modules/routes/services/request.service.js'
 export { ResponseService } from './modules/routes/services/response.service.js'
 
+// Re-export superstruct validation guards
+export { validateBody, validateParams, validateQuery, validateHeaders } from './modules/routes/validations/index.js'
+export { object, string, number, boolean, array, optional, nullable, enums, pattern, size, define, type Infer } from 'superstruct'
+
 /**
  * RacerEX_F - Main framework class
  *
