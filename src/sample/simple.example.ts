@@ -68,7 +68,7 @@ app
     .middleware(express.json())
     .middleware(express.urlencoded({ extended: true }))
 
-RacerEX_F.bootstrap(app, [
+app.bootstrap([
     { path: '/api', route: userController },
     { path: '/api', route: adminController },
     { path: '/ws', route: chatController }

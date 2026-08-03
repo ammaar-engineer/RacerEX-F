@@ -191,7 +191,7 @@ const app = RacerEX_F.App()
 
 app.middleware(express.json())
 
-RacerEX_F.bootstrap(app, [
+app.bootstrap([
     { path: '/auth', route: authController }
 ])
 

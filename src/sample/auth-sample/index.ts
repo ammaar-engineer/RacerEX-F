@@ -17,7 +17,7 @@ app
     .middleware(express.urlencoded({ extended: true }))
 
 // === Register Routes ===
-RacerEX_F.bootstrap(app, [
+app.bootstrap([
     { path: '/auth', route: authController }
 ])
 
