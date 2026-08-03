@@ -1,5 +1,5 @@
-import { HttpEndpointBuilder, type GuardFn } from './controller/http.js'
-import { WsEndpointBuilder } from './controller/ws.js'
+import { HttpEndpointBuilder, type GuardFn } from './endpoints/http.js'
+import { WsEndpointBuilder } from './endpoints/ws.js'
 import type { EndpointConfig } from './types/endpoint.config.js'
 
 /**

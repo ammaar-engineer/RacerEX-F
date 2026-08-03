@@ -1,6 +1,6 @@
 import type { RequestHandler } from 'express'
-import type { GuardFn, HttpEndpointHandler } from '../controller/http.js'
-import type { WsEndpointHandler } from '../controller/ws.js'
+import type { GuardFn, HttpEndpointHandler } from '../endpoints/http.js'
+import type { WsEndpointHandler } from '../endpoints/ws.js'
 
 /**
  * Base config untuk semua endpoint types

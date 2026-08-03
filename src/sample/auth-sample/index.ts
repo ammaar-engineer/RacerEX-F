@@ -1,7 +1,7 @@
 import express from 'express'
-import RacerEX_F, { RacerEX_F as RacerClass } from '../../main.js'
-import { AuthService } from './services/auth.service.js'
+import { RacerEX_F } from '../../main.js'
 import { createAuthController } from './controllers/auth.controller.js'
+import { AuthService } from './services/auth.service.js'
 
 // === Bootstrap Services ===
 const authService = new AuthService()
@@ -17,7 +17,7 @@ app
     .middleware(express.urlencoded({ extended: true }))
 
 // === Register Routes ===
-RacerClass.bootstrap(app, [
+RacerEX_F.bootstrap(app, [
     { path: '/auth', route: authController }
 ])
 

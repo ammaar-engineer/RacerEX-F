@@ -1,11 +1,11 @@
+import { RacerError, RacerEX_F, validateBody } from '../../../main.js'
 import { Route } from '../../../modules/routes/main.js'
-import { RacerError, validateBody } from '../../../main.js'
 import type { RequestService } from '../../../modules/routes/services/request.service.js'
 import type { ResponseService } from '../../../modules/routes/services/response.service.js'
-import type { AuthService } from '../services/auth.service.js'
-import type { RegisterDTO, LoginDTO } from '../types/user.types.js'
-import { RegisterSchema, LoginSchema } from '../types/validation.schemas.js'
 import { isAuthenticated } from '../guards/auth.guard.js'
+import type { AuthService } from '../services/auth.service.js'
+import type { LoginDTO, RegisterDTO } from '../types/user.types.js'
+import { LoginSchema, RegisterSchema } from '../types/validation.schemas.js'
 
 /**
  * Factory function untuk create AuthController
@@ -16,10 +16,12 @@ import { isAuthenticated } from '../guards/auth.guard.js'
  * const authController = createAuthController(authService)
  */
 export function createAuthController(authService: AuthService): Route {
-    const route = new Route()
+    const route = RacerEX_F.Route()
 
     // Inject AuthService ke semua endpoints
-    route.inject(authService)
+    route.inject(
+        authService
+    )
 
     // POST /register - Create new user
     route.http()

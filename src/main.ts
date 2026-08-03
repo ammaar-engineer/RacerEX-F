@@ -1,23 +1,22 @@
-import express, { Router } from 'express'
-import { Route } from './modules/routes/main.js'
+import { Router } from 'express'
 import { AppModules } from './modules/app/main.js'
+import { Route } from './modules/routes/main.js'
 import { registerHttpEndpoint, registerWsEndpoint } from './services/express.handler.js'
-import type { HttpEndpointConfig } from './modules/routes/types/endpoint.config.js'
 
 // Re-export types yang dibutuhkan user framework
-export type { HttpEndpointHandler, GuardFn } from './modules/routes/controller/http.js'
-export type { WsEndpointHandler, WsEndpointInputConfig, WsConnection } from './modules/routes/controller/ws.js'
+export type { GuardFn, HttpEndpointHandler } from './modules/routes/endpoints/http.js'
+export type { WsConnection, WsEndpointHandler, WsEndpointInputConfig } from './modules/routes/endpoints/ws.js'
+export type { BaseEndpointConfig, EndpointConfig, HttpEndpointConfig } from './modules/routes/types/endpoint.config.js'
 export type { ResponseOutput } from './types/response.output.js'
-export type { EndpointConfig, HttpEndpointConfig, BaseEndpointConfig } from './modules/routes/types/endpoint.config.js'
 
 // Re-export classes
-export { RacerError } from './types/error.class.js'
 export { RequestService } from './modules/routes/services/request.service.js'
 export { ResponseService } from './modules/routes/services/response.service.js'
+export { RacerError } from './types/error.class.js'
 
 // Re-export superstruct validation guards
-export { validateBody, validateParams, validateQuery, validateHeaders } from './modules/routes/validations/index.js'
-export { object, string, number, boolean, array, optional, nullable, enums, pattern, size, define, type Infer } from 'superstruct'
+export { array, boolean, define, enums, nullable, number, object, optional, pattern, size, string, type Infer } from 'superstruct'
+export { validateBody, validateHeaders, validateParams, validateQuery } from './modules/routes/validations/index.js'
 
 /**
  * RacerEX_F - Main framework class
@@ -38,7 +37,7 @@ export { object, string, number, boolean, array, optional, nullable, enums, patt
  *   { path: '/api', route: userController }
  * ]).port(3000)
  */
-export class RacerEX_F {
+export class RacerEX_FApp {
     /**
      * Create new Route instance
      */
@@ -68,7 +67,7 @@ export class RacerEX_F {
      *
      * app.port(3000)
      */
-    static bootstrap(
+    bootstrap(
         app: AppModules,
         routes: Array<{ path: string; route: Route }>
     ): void {
@@ -89,4 +88,4 @@ export class RacerEX_F {
     }
 }
 
-export default new RacerEX_F()
+export const RacerEX_F =  new RacerEX_FApp()
