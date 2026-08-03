@@ -12,7 +12,11 @@ src/
 ├── modules/
 │   ├── app/
 │   │   ├── main.ts                      # AppModules — Express app wrapper
-│   │   └── middleware/error.middleware.ts
+│   │   ├── express.handler.ts           # registerHttpEndpoint — Express bridge
+│   │   ├── middleware/
+│   │   │   └── error.middleware.ts
+│   │   └── types/
+│   │       └── ws.router.config.ts
 │   └── routes/
 │       ├── main.ts                      # Route — config container
 │       ├── endpoints/
@@ -25,12 +29,13 @@ src/
 │       │   └── endpoint.config.ts       # EndpointConfig types
 │       └── validations/
 │           ├── index.ts
+│           ├── schemas.example.ts
 │           └── superstruct.guard.ts     # validateBody, validateQuery, dll
-├── services/
-│   └── express.handler.ts              # registerHttpEndpoint — Express bridge
-└── types/
-    ├── error.class.ts                   # RacerError
-    └── response.output.ts              # ResponseOutput format
+├── types/
+│   ├── error.class.ts                   # RacerError
+│   └── response.output.ts               # ResponseOutput format
+└── validations/
+    └── function.validation.ts
 ```
 
 ---
@@ -229,7 +234,7 @@ tanpa perlu Express server berjalan.
 
 ### 3. Single Registration Point
 `bootstrap()` + `registerHttpEndpoint()` adalah **satu-satunya tempat** Express terlibat.
-Semua Express routing logic ada di `src/services/express.handler.ts`.
+Semua Express routing logic ada di `src/modules/app/express.handler.ts`.
 
 ### 4. Guards as Pipeline
 Guards dijalankan **secara sequential** sebelum handler. Guard dari level Route
@@ -291,7 +296,7 @@ interface ResponseOutput<D> {
 | `src/modules/routes/main.ts` | `Route` class — config container |
 | `src/modules/routes/endpoints/http.ts` | `HttpEndpointBuilder` — fluent builder |
 | `src/modules/routes/types/endpoint.config.ts` | `EndpointConfig` types |
-| `src/services/express.handler.ts` | Express registration bridge |
+| `src/modules/app/express.handler.ts` | Express registration bridge |
 | `src/modules/app/main.ts` | `AppModules` — Express app wrapper |
 | `src/modules/routes/services/request.service.ts` | `RequestService` — req wrapper |
 | `src/modules/routes/services/response.service.ts` | `ResponseService` — res wrapper |
