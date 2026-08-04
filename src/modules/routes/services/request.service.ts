@@ -26,14 +26,14 @@ export class RequestService<T = any> {
      * Get route parameter
      * @example rcf.getParam('id') // from /user/:id
      */
-    getParam(key: string): string {
-        return this.req.params[key]
+    getParam(key: string): string | undefined {
+        return this.req.params[key] as string | undefined
     }
 
     /**
      * Get all route parameters
      */
-    getParams(): Record<string, string> {
+    getParams(): Record<string, any> {
         return this.req.params
     }
 

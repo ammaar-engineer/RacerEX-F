@@ -1,4 +1,4 @@
-import { object, string, number, optional, enums, pattern, size, email as emailStruct, define, type Infer } from 'superstruct'
+import { object, string, number, optional, enums, pattern, size, define, type Infer } from 'superstruct'
 
 /**
  * Example schemas untuk dokumentasi
@@ -8,7 +8,7 @@ import { object, string, number, optional, enums, pattern, size, email as emailS
 // === Basic Schema ===
 export const UserSchema = object({
     name: string(),
-    email: emailStruct(),
+    email: pattern(string(), /^[^\s@]+@[^\s@]+\.[^\s@]+$/),
     age: number()
 })
 
@@ -17,7 +17,7 @@ export type User = Infer<typeof UserSchema>
 // === Optional Fields ===
 export const UpdateUserSchema = object({
     name: optional(string()),
-    email: optional(emailStruct()),
+    email: optional(pattern(string(), /^[^\s@]+@[^\s@]+\.[^\s@]+$/)),
     age: optional(number())
 })
 
@@ -46,7 +46,7 @@ export const AuthHeaderSchema = object({
 export const ProfileSchema = object({
     user: object({
         name: string(),
-        email: emailStruct()
+        email: pattern(string(), /^[^\s@]+@[^\s@]+\.[^\s@]+$/)
     }),
     settings: object({
         theme: enums(['light', 'dark']),
@@ -74,7 +74,7 @@ export const PasswordSchema = define<string>('Password', (value) => {
 
 // Registration schema dengan custom validators
 export const RegisterSchema = object({
-    email: emailStruct(),
+    email: pattern(string(), /^[^\s@]+@[^\s@]+\.[^\s@]+$/),
     password: PasswordSchema,
     phone: PhoneSchema,
     name: size(string(), 3, 50)

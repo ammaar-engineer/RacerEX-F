@@ -1,6 +1,6 @@
-import { type Struct, validate } from 'superstruct'
-import { RacerError } from '../../../types/error.class.js'
-import type { GuardFn } from '../controller/http.js'
+import { type Struct, validate } from 'superstruct';
+import { RacerError } from '../../../types/error.class.js';
+import type { GuardFn } from '../endpoints/http.js';
 
 // Format error dari superstruct ke format yang readable
 function formatStructError(error: any): { path: string; message: string }[] {

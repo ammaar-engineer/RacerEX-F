@@ -1,17 +1,17 @@
-import RacerEX_F from '../main.js'
 import express from 'express'
+import { RacerEX_F } from '../main.js'
 
 // === Example 1: Simple endpoint ===
 const userController = RacerEX_F.Route()
 
-userController.CreateEndpoint({ type: 'http' })
-    .config({ type: 'http', method: 'get', url: '/hello' })
+userController.http()
+    .config({ method: 'get', url: '/hello' })
     .main((req, res) => {
         res.success('Hello from RacerEX-F!')
     })
 
-userController.CreateEndpoint({ type: 'http' })
-    .config({ type: 'http', method: 'get', url: '/user/:id' })
+userController.http()
+    .config({ method: 'get', url: '/user/:id' })
     .main((req, res) => {
         const id = req.getParam('id')
         res.success({ id, name: 'John Doe' }, `User ${id} retrieved`)
@@ -26,8 +26,8 @@ const validateId = (req: any) => {
     return true
 }
 
-userController.CreateEndpoint({ type: 'http' })
-    .config({ type: 'http', method: 'get', url: '/protected/:id' })
+userController.http()
+    .config({ method: 'get', url: '/protected/:id' })
     .guards(validateId)
     .main((req, res) => {
         const id = req.getParam('id')
@@ -42,23 +42,23 @@ const userService = {
 const adminController = RacerEX_F.Route()
     .inject(userService)
 
-adminController.CreateEndpoint({ type: 'http' })
-    .config({ type: 'http', method: 'get', url: '/admin/user/:id' })
+adminController.http()
+    .config({ method: 'get', url: '/admin/user/:id' })
     .main((req, res, [service]) => {
         const id = req.getParam('id')
         const user = service.findById(id)
         res.success(user, 'User found')
     })
+adminController.ws()
+    .config({ url: '/api'})
 
 // === Example 4: WebSocket (placeholder, requires ws library) ===
 const chatController = RacerEX_F.Route()
 
-chatController.CreateEndpoint({ type: 'ws' })
-    .config({ type: 'ws', url: '/chat' })
+chatController.ws()
+    .config({ url: '/chat' })
     .main((socket, req) => {
         console.log('WS connected (placeholder)')
-        // socket.on('message', (msg) => { ... })
-        // socket.send('Hello from server')
     })
 
 // === Setup app ===
@@ -67,10 +67,14 @@ const app = RacerEX_F.App()
 app
     .middleware(express.json())
     .middleware(express.urlencoded({ extended: true }))
-    .router('/api', userController.getRouter(), { type: 'http' })
-    .router('/api', adminController.getRouter(), { type: 'http' })
-    .router('/ws', chatController.getRouter(), { type: 'ws' })
-    .port(3000)
+
+app.bootstrap([
+    { path: '/api', route: userController },
+    { path: '/api', route: adminController },
+    { path: '/ws', route: chatController }
+])
+
+app.port(3000)
 
 console.log('\n✅ Server started on http://localhost:3000')
 console.log('\nHTTP Endpoints:')

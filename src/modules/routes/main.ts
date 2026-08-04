@@ -1,12 +1,13 @@
-import express, { Router } from 'express'
-import { HttpEndpointBuilder, type GuardFn } from './controller/http.js'
-import { WsEndpointBuilder } from './controller/ws.js'
+import { HttpEndpointBuilder, type GuardFn } from './endpoints/http.js'
+import { WsEndpointBuilder } from './endpoints/ws.js'
+import type { EndpointConfig } from './types/endpoint.config.js'
 
 /**
  * Route - Container untuk multiple endpoints dengan DI dan guards support
+ * Tidak memiliki Express Router — hanya menyimpan endpoint configs
  */
 export class Route {
-    private router: Router = express.Router()
+    private endpoints: EndpointConfig[] = []
     private injectedDependencies: any[] = []
     private globalGuards: GuardFn[] = []
 
@@ -33,47 +34,45 @@ export class Route {
 
     /**
      * Create new HTTP endpoint builder
-     */
-    CreateEndpoint(options: { type: 'http' }): HttpEndpointBuilder
-
-    /**
-     * Create new WebSocket endpoint builder
-     */
-    CreateEndpoint(options: { type: 'ws' }): WsEndpointBuilder
-
-    /**
-     * Create new endpoint builder based on type
      * @example
-     * // HTTP endpoint
-     * route.CreateEndpoint({ type: 'http' })
-     *   .config({ type: 'http', method: 'get', url: '/hello' })
+     * route.http()
+     *   .config({ method: 'get', url: '/hello' })
      *   .main((req, res) => { ... })
-     *
-     * // WebSocket endpoint
-     * route.CreateEndpoint({ type: 'ws' })
-     *   .config({ type: 'ws', url: '/chat' })
-     *   .main((socket, req) => { ... })
      */
-    CreateEndpoint({ type }: { type: 'http' | 'ws' }): HttpEndpointBuilder | WsEndpointBuilder {
-        if (type === 'ws') {
-            return new WsEndpointBuilder(
-                this.router,
-                this.injectedDependencies,
-                this.globalGuards
-            )
-        }
-
+    http(): HttpEndpointBuilder {
         return new HttpEndpointBuilder(
-            this.router,
+            this,
             this.injectedDependencies,
             this.globalGuards
         )
     }
 
     /**
-     * Get Express Router instance untuk integration dengan AppModules
+     * Create new WebSocket endpoint builder
+     * @example
+     * route.ws()
+     *   .config({ url: '/chat' })
+     *   .main((socket, req) => { ... })
      */
-    getRouter(): Router {
-        return this.router
+    ws(): WsEndpointBuilder {
+        return new WsEndpointBuilder(
+            this,
+            this.injectedDependencies,
+            this.globalGuards
+        )
+    }
+
+    /**
+     * Internal: Add endpoint config (called by builders)
+     */
+    addEndpoint(config: EndpointConfig): void {
+        this.endpoints.push(config)
+    }
+
+    /**
+     * Get all endpoint configs (used by bootstrap)
+     */
+    getConfigs(): EndpointConfig[] {
+        return this.endpoints
     }
 }
